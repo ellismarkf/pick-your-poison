@@ -166,14 +166,14 @@
         option.append(text)
         return option
       })
-      datalist.append(opts)
-      input.list = "units"
+      datalist.append(...opts)
       input.required = true;
       input.name = 'ingredient-unit';
       input.id = `ingredient-unit-${id}`
       const td = document.createElement('td')
       td.append(input)
       td.append(datalist)
+      input.setAttribute('list', datalist.id)
       return td
     }
     function createIngredientNameInput(id) {
@@ -197,14 +197,14 @@
         option.append(text)
         return option
       })
-      datalist.append(opts)
-      input.list = "types"
+      datalist.append(...opts)
       input.required = true;
       input.name = 'ingredient-type';
       input.id = `ingredient-type-${id}`
       const td = document.createElement('td')
       td.append(input)
       td.append(datalist)
+      input.setAttribute('list', datalist.id)
       return td
     }
 
@@ -225,6 +225,7 @@
           typeInput
         )
         ingredientsList.append(newIngredientRow)
+        unitInput.chi
         id++
       }
     })()
