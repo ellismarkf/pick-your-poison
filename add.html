@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Add your poison</title>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+    label, button, input[type=submit] {
+      display: block;
+      margin-top: 20px;
+    }
+    .new-ingredient-row label {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <form id="poison">
+    <section>
+      <h1>Overview</h1>
+      <label for="name">Name</label>
+      <input type="text" name="name" id="name" required>
+      <label for="family">Family</label>
+      <input list="families" name="family" id="family" required>
+      <datalist id="families">
+        <option value="Classic and Vintage">Classic and Vintage</option>
+        <option value="Gin Shaken">Gin Shaken</option>
+        <option value="Gin Stirred">Gin Stirred</option>
+        <option value="Rum Shaken">Rum Shaken</option>
+        <option value="Rum Stirred">Rum Stirred</option>
+        <option value="Agave Shaken">Agave Shaken</option>
+        <option value="Agave Stirred">Agave Stirred</option>
+        <option value="Whiskey Shaken">Whiskey Shaken</option>
+        <option value="Whiskey Stirred">Whiskey Stirred</option>
+        <option value="Brandy Shaken">Brandy Shaken</option>
+        <option value="Brandy Stirred">Brandy Stirred</option>
+        <option value="Sparkling Cocktails">Sparkling Cocktails</option>
+        <option value="Fortified Wine Cocktails">Fortified Wine Cocktails</option>
+        <option value="Punch">Punch</option>
+        <option value="Juleps">Juleps</option>
+        <option value="Flips and Fizzes">Flips and Fizzes</option>
+        <option value="Swizzles">Swizzles</option>
+        <option value="Multiple Choice">Multiple Choice</option>
+        <option value="Aquavit">Aquavit</option>
+        <option value="Sazerac Variations">Sazerac Variations</option>
+        <option value="Negroni Variations">Negroni Variations</option>
+        <option value="Daiquiri Variations">Daiquiri Variations</option>
+        <option value="Manhattan Variations">Manhattan Variations</option>
+        <option value="Old-Fashioned Variations">Old-Fashioned Variations</option>
+      </datalist>
+    </section>
+    <section>
+      <h1>Details</h1>
+      <label for="glass">Glass</label>
+      <input list="glasses" name="glass" id="glass" required>
+      <datalist id="glasses">
+        <option value="Coupe">Coupe</option>
+        <option value="Martini">Martini</option>
+        <option value="Nick & Nora">Nick & Nora</option>
+        <option value="Port">Port</option>
+        <option value="Fancy fizz">Fancy fizz</option>
+        <option value="Fizz">Fizz</option>
+        <option value="Champagne flute">Champagne flute</option>
+        <option value="Single rocks">Single rocks</option>
+        <option value="Double rocks">Double rocks</option>
+        <option value="Snifter">Snifter</option>
+        <option value="Julep tin">Julep tin</option>
+        <option value="Tiki mug">Tiki mug</option>
+        <option value="Ceramic coconut">Ceramic coconut</option>
+        <option value="Pilsner">Pilsner</option>
+        <option value="Highball">Highball</option>
+        <option value="Punch bowl">Punch bowl</option>
+      </datalist>
+      <div id="ingredients-list">
+        <label>Ingredients</label>
+      </div>
+      <button id="add-ingredient">Add ingredient</button>
+      <label for="instructions">Instructions</label>
+      <textarea name="instructions" id="instructions" cols="30" rows="10"></textarea>
+    </section>
+    <input type="submit" value="Add your poison">
+  </form>
+  <script>
+    const addIngredientButton = document.querySelector('#add-ingredient')
+    const ingredientsList = document.querySelector('#ingredients-list')
+    const ingredientTypes = [
+      "Primer",
+      "Base spirit",
+      "Modifier",
+      "Fresh juice",
+      "Sweetener",
+      "Oddball",
+      "Bitters",
+      "Topper",
+      "Garnish"
+    ]
+    const unitsOfMeasurementSingular = [
+      'Drop',
+      'Dash',
+      'Teaspoon',
+      'Ounce'
+    ]
+    const unitsOfMeasurementPlural = [
+      'Drops',
+      'Dashes',
+      'Teaspoons',
+      'Ounces'
+    ]
+    function createIngredientNumericQuantityInput() {
+      const input = document.createElement('input')
+      return input
+    }
+    function createIngredientUnitOfMeasurementInput() {
+      const input = document.createElement('input')
+      return input
+    }
+    function createIngredientNameInput() {
+      const input = document.createElement('input')
+      return input
+    }
+    function createIngredientTypeInput() {
+      const input = document.createElement('input')
+      return input
+    }
+
+    addIngredientButton.addEventListener('click', event => {
+      event.preventDefault();
+      const newIngredientRow = document.createElement('div')
+      newIngredientRow.classList.add('new-ingredient-row')
+      const numericQuantityLabel = document.createElement('label')
+      numericQuantityLabel.innerText = 'Quantity'
+      const numericQuantityInput = createIngredientNumericQuantityInput()
+      const unitInput = createIngredientUnitOfMeasurementInput()
+      const nameinput = createIngredientNameInput()
+      const typeInput = createIngredientTypeInput()
+      newIngredientRow.append(
+        numericQuantityLabel,
+        numericQuantityInput,
+        unitInput,
+        nameinput,
+        typeInput
+      )
+      ingredientsList.append(newIngredientRow)
+    })
+  </script>
+</body>
+</html>
