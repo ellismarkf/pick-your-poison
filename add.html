@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,15 +10,39 @@
     body {
       font-family: sans-serif;
     }
-    label, button, input[type=submit] {
+
+    label,
+    button,
+    input[type=submit] {
       display: block;
       margin-top: 20px;
     }
+
     .new-ingredient-row label {
       display: inline-block;
     }
+
+    table {
+      border: 1px solid #e0e0dc;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table caption {
+      text-align: left;
+    }
+
+    table th {
+      font-family: inherit;
+      font-size: small;
+      font-weight: inherit;
+      border: solid #e0e0dc;
+      border-width: 0px 1px 0px;
+      padding: 5px 10px;
+    }
   </style>
 </head>
+
 <body>
   <form id="poison">
     <section>
@@ -75,9 +100,18 @@
         <option value="Highball">Highball</option>
         <option value="Punch bowl">Punch bowl</option>
       </datalist>
-      <div id="ingredients-list">
-        <label>Ingredients</label>
-      </div>
+      <table id="ingredients-list">
+        <caption>Ingredients</caption>
+        <thead>
+          <tr>
+            <th>Quantity</th>
+            <th>Unit of Measurement</th>
+            <th>Ingredient</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
       <button id="add-ingredient">Add ingredient</button>
       <label for="instructions">Instructions</label>
       <textarea name="instructions" id="instructions" cols="30" rows="10"></textarea>
@@ -86,7 +120,7 @@
   </form>
   <script>
     const addIngredientButton = document.querySelector('#add-ingredient')
-    const ingredientsList = document.querySelector('#ingredients-list')
+    const ingredientsList = document.querySelector('#ingredients-list tbody')
     const ingredientTypes = [
       "Primer",
       "Base spirit",
@@ -110,42 +144,93 @@
       'Teaspoons',
       'Ounces'
     ]
-    function createIngredientNumericQuantityInput() {
+    function createIngredientNumericQuantityInput(id) {
       const input = document.createElement('input')
-      return input
+      input.type = 'number'
+      input.step = 0.25
+      input.required = true;
+      input.name = 'ingredient-quantity';
+      input.id = `ingredient-quantity-${id}`
+      const td = document.createElement('td')
+      td.append(input)
+      return td
     }
-    function createIngredientUnitOfMeasurementInput() {
+    function createIngredientUnitOfMeasurementInput(id) {
       const input = document.createElement('input')
-      return input
+      const datalist = document.createElement('datalist')
+      datalist.id = 'units'
+      const opts = unitsOfMeasurementSingular.map(unit => {
+        const option = document.createElement('option')
+        option.value = unit;
+        const text = document.createTextNode(unit)
+        option.append(text)
+        return option
+      })
+      datalist.append(opts)
+      input.list = "units"
+      input.required = true;
+      input.name = 'ingredient-unit';
+      input.id = `ingredient-unit-${id}`
+      const td = document.createElement('td')
+      td.append(input)
+      td.append(datalist)
+      return td
     }
-    function createIngredientNameInput() {
+    function createIngredientNameInput(id) {
       const input = document.createElement('input')
-      return input
+      input.type = 'text'
+      input.required = true;
+      input.name = 'ingredient-name';
+      input.id = `ingredient-name-${id}`
+      const td = document.createElement('td')
+      td.append(input)
+      return td
     }
-    function createIngredientTypeInput() {
+    function createIngredientTypeInput(id) {
       const input = document.createElement('input')
-      return input
+      const datalist = document.createElement('datalist')
+      datalist.id = "types"
+      const opts = ingredientTypes.map(type => {
+        const option = document.createElement('option')
+        option.value = type;
+        const text = document.createTextNode(type)
+        option.append(text)
+        return option
+      })
+      datalist.append(opts)
+      input.list = "types"
+      input.required = true;
+      input.name = 'ingredient-type';
+      input.id = `ingredient-type-${id}`
+      const td = document.createElement('td')
+      td.append(input)
+      td.append(datalist)
+      return td
     }
 
-    addIngredientButton.addEventListener('click', event => {
-      event.preventDefault();
-      const newIngredientRow = document.createElement('div')
-      newIngredientRow.classList.add('new-ingredient-row')
-      const numericQuantityLabel = document.createElement('label')
-      numericQuantityLabel.innerText = 'Quantity'
-      const numericQuantityInput = createIngredientNumericQuantityInput()
-      const unitInput = createIngredientUnitOfMeasurementInput()
-      const nameinput = createIngredientNameInput()
-      const typeInput = createIngredientTypeInput()
-      newIngredientRow.append(
-        numericQuantityLabel,
-        numericQuantityInput,
-        unitInput,
-        nameinput,
-        typeInput
-      )
-      ingredientsList.append(newIngredientRow)
-    })
+    const addNewIngredient = (() => {
+      let id = 0;
+      return event => {
+        event.preventDefault();
+        const newIngredientRow = document.createElement('tr')
+        newIngredientRow.classList.add('new-ingredient-row')
+        const numericQuantityInput = createIngredientNumericQuantityInput(id)
+        const unitInput = createIngredientUnitOfMeasurementInput(id)
+        const nameinput = createIngredientNameInput(id)
+        const typeInput = createIngredientTypeInput(id)
+        newIngredientRow.append(
+          numericQuantityInput,
+          unitInput,
+          nameinput,
+          typeInput
+        )
+        ingredientsList.append(newIngredientRow)
+        id++
+      }
+    })()
+
+    addIngredientButton.addEventListener('click', addNewIngredient)
   </script>
 </body>
+
 </html>
