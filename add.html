@@ -86,7 +86,7 @@
       <label for="name">Name</label>
       <input type="text" name="name" id="name" required>
       <label for="family">Family</label>
-      <input list="families" name="family" id="family" required>
+      <input list="families" name="family" id="family" required value="Classic and Vintage">
       <datalist id="families">
         <option value="Classic and Vintage">Classic and Vintage</option>
         <option value="Gin Shaken">Gin Shaken</option>
@@ -117,7 +117,7 @@
     <section>
       <h1>Details</h1>
       <label for="glass">Glass</label>
-      <input list="glasses" name="glass" id="glass" required>
+      <input list="glasses" name="glass" id="glass" required value="Coupe">
       <datalist id="glasses">
         <option value="Coupe">Coupe</option>
         <option value="Martini">Martini</option>
@@ -265,11 +265,8 @@
       return td
     }
 
-    const addNewIngredient = (() => {
-      let id = 0;
-      return event => {
-        event.preventDefault();
-        const newIngredientRow = document.createElement('tr')
+    function addNewIngredientToDom(id) {
+      const newIngredientRow = document.createElement('tr')
         newIngredientRow.classList.add('new-ingredient-row')
         newIngredientRow.id = `new-ingredient-row-${id}`
         const numericQuantityInput = createIngredientNumericQuantityInput(id)
@@ -286,9 +283,16 @@
         )
         ingredientsList.append(newIngredientRow)
         id++
+    }
+
+    const addNewIngredient = (() => {
+      let id = 1;
+      return event => {
+        event.preventDefault();
+        addNewIngredientToDom(id)
       }
     })()
-
+    addNewIngredientToDom(0)
     addIngredientButton.addEventListener('click', addNewIngredient)
     submitButton.addEventListener('click', event => {
       event.preventDefault()
