@@ -267,22 +267,23 @@
 
     function addNewIngredientToDom(id) {
       const newIngredientRow = document.createElement('tr')
-        newIngredientRow.classList.add('new-ingredient-row')
-        newIngredientRow.id = `new-ingredient-row-${id}`
-        const numericQuantityInput = createIngredientNumericQuantityInput(id)
-        const unitInput = createIngredientUnitOfMeasurementInput(id)
-        const nameinput = createIngredientNameInput(id)
-        const typeInput = createIngredientTypeInput(id)
-        const deleteButton = createDeleteRowCell(id)
-        newIngredientRow.append(
-          numericQuantityInput,
-          unitInput,
-          nameinput,
-          typeInput,
-          deleteButton
-        )
-        ingredientsList.append(newIngredientRow)
-        id++
+      newIngredientRow.classList.add('new-ingredient-row')
+      newIngredientRow.id = `new-ingredient-row-${id}`
+      const numericQuantityInput = createIngredientNumericQuantityInput(id)
+      const unitInput = createIngredientUnitOfMeasurementInput(id)
+      const nameinput = createIngredientNameInput(id)
+      const typeInput = createIngredientTypeInput(id)
+      newIngredientRow.append(
+        numericQuantityInput,
+        unitInput,
+        nameinput,
+        typeInput
+      )
+      ingredientsList.append(newIngredientRow)
+      if (ingredientsList.childElementCount > 1) {
+        newIngredientRow.append(createDeleteRowCell(id))
+      }
+      ingredientsList.lastElementChild.firstElementChild.firstElementChild.focus()
     }
 
     const addNewIngredient = (() => {
@@ -290,6 +291,7 @@
       return event => {
         event.preventDefault();
         addNewIngredientToDom(id)
+        id++
       }
     })()
     addNewIngredientToDom(0)
@@ -303,9 +305,34 @@
         return;
       }
       const formData = new FormData(form)
-      for (const entry of formData.entries()) {
-        console.log(entry)
-      }
+      const formattedIngredients = [...ingredientsList.children].reduce((ingredients, ingredient) => [
+        ...ingredients,
+        [...ingredient.children].reduce((acc, td) => {
+          if (td.firstElementChild.tagName === 'INPUT') {
+            const input = td.firstElementChild
+            const key = input.name.replace(/ingredient-/g, '')
+            return {
+              ...acc,
+              [key]: input.value
+            }
+          } else {
+            return acc
+          }
+        }, {})
+      ], [])
+      const filteredFormData = [...formData.entries()].reduce((acc, pair) => {
+        const [key, value] = pair
+        if (!key.startsWith('ingredient-')) {
+          return {
+            ...acc,
+            [key]: value
+          }
+        } else {
+          return acc
+        }
+      }, {})
+      filteredFormData.ingredients = formattedIngredients
+      console.log(filteredFormData)
     })
   </script>
 </body>
