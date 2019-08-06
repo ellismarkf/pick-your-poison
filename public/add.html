@@ -191,7 +191,6 @@
       const input = document.createElement('input')
       input.type = 'number'
       input.step = 0.25
-      input.required = true;
       input.name = 'ingredient-quantity';
       input.id = `ingredient-quantity-${id}`
       const td = document.createElement('td')
@@ -210,7 +209,6 @@
         return option
       })
       datalist.append(...opts)
-      input.required = true;
       input.name = 'ingredient-unit';
       input.id = `ingredient-unit-${id}`
       const td = document.createElement('td')
@@ -332,7 +330,18 @@
         }
       }, {})
       filteredFormData.ingredients = formattedIngredients
-      console.log(filteredFormData)
+      console.log(JSON.stringify(filteredFormData))
+      fetch('/libations', 
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(filteredFormData)
+        }
+      )
+      .then(res => res.json())
+      .then(r => console.log(r))
     })
   </script>
 </body>
