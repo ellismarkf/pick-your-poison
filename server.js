@@ -70,7 +70,7 @@ app.get('/search', async (req, res) => {
   console.log(getIngredientsByName(ingredients.split(',')).query.nested.query.bool.should)
   const { body } = await client.search({
     index: 'libations',
-    body:getIngredientsByName(ingredients.split(','))
+    body: getIngredientsByName(ingredients.split(','))
   })
   console.log(body.hits.hits)
   res.send(body)
