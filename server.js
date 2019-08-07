@@ -33,8 +33,12 @@ app.get(`/${libations}`, async (req, res) => {
   const { body } = await client.search({
     index: libations,
     body: {
-      query: {
-        match_all: {}
+      aggregations: {
+        families: {
+          terms: {
+            field: 'family.keyword'
+          }
+        }
       }
     }
   })
