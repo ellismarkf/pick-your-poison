@@ -31,6 +31,8 @@ app.delete('/indices/:name', async (req, res) => {
 
 app.get(`/${libations}`, async (req, res) => {
   const { body } = await client.search({
+    size: 1000,
+    track_total_hits: false,
     index: libations,
     body: {
       aggregations: {
