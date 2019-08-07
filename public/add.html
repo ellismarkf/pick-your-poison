@@ -162,7 +162,7 @@
   </form>
   <script>
     const addIngredientButton = document.querySelector('#add-ingredient')
-    const ingredientsList = document.querySelector('#ingredients-list tbody')
+    const ingredientRows = document.querySelector('#ingredients-list tbody')
     const submitButton = document.querySelector('#submit')
     const ingredientTypes = [
       "Primer",
@@ -256,7 +256,7 @@
       deleteButton.addEventListener('click', event => {
         event.preventDefault()
         const row = document.querySelector(`#new-ingredient-row-${id}`)
-        ingredientsList.removeChild(row)
+        ingredientRows.removeChild(row)
       })
       const td = document.createElement('td')
       td.append(deleteButton)
@@ -277,11 +277,11 @@
         nameinput,
         typeInput
       )
-      ingredientsList.append(newIngredientRow)
-      if (ingredientsList.childElementCount > 1) {
+      ingredientRows.append(newIngredientRow)
+      if (ingredientRows.childElementCount > 1) {
         newIngredientRow.append(createDeleteRowCell(id))
       }
-      ingredientsList.lastElementChild.firstElementChild.firstElementChild.focus()
+      ingredientRows.lastElementChild.firstElementChild.firstElementChild.focus()
     }
 
     const addNewIngredient = (() => {
@@ -303,7 +303,7 @@
         return;
       }
       const formData = new FormData(form)
-      const formattedIngredients = [...ingredientsList.children].reduce((ingredients, ingredient) => [
+      const ingredientsList = [...ingredientRows.children].reduce((ingredients, ingredient) => [
         ...ingredients,
         [...ingredient.children].reduce((acc, td) => {
           if (td.firstElementChild.tagName === 'INPUT') {
@@ -318,7 +318,7 @@
           }
         }, {})
       ], [])
-      const filteredFormData = [...formData.entries()].reduce((acc, pair) => {
+      const processedFormData = [...formData.entries()].reduce((acc, pair) => {
         const [key, value] = pair
         if (!key.startsWith('ingredient-')) {
           return {
@@ -329,20 +329,33 @@
           return acc
         }
       }, {})
-      filteredFormData.ingredients = formattedIngredients
-      console.log(JSON.stringify(filteredFormData))
+      
+      processedFormData.ingredientsList = ingredientsList
+      processedFormData.ingredients = ingredientsList.map(ingredient => {
+        const {
+          type,
+          ...readableText
+        } = ingredient
+        return Object.values(readableText).join(' ')
+      }).join('\n');
+      // console.log(JSON.stringify(processedFormData))
       fetch('/libations', 
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(filteredFormData)
+          body: JSON.stringify(processedFormData)
         }
       )
       .then(res => res.json())
       .then(r => console.log(r))
     })
+    function search(query) {
+      fetch(`/search/ingredients?ingredients=${query}`)
+        .then(res => res.json())
+        .then(r => console.log(r))
+    }
   </script>
 </body>
 

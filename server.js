@@ -4,6 +4,7 @@ const axios = require('axios')
 const app = express()
 const PORT = 3000
 const client = new Client({ node: 'http://localhost:9200' })
+const libations = 'libations'
 
 app.use(express.json())
 app.use(express.static('public'))
@@ -15,18 +16,48 @@ app.get('/indices', async (req, res) => {
   res.send(body)
 })
 
-app.get('/libations', async (req, res) => {
-  const { body } = await client.indices.get('libations')
+app.get('/indices/:name', async (req, res) => {
+  const { name } = req.params
+  const { body } = await client.indices.get(name)
   res.send(body)
 })
 
-app.put('/libations', async (req, res) => {
+app.delete('/indices/:name', async (req, res) => {
+  const { name } = req.params
+  const { body } = await client.indices.delete({
+    index: name
+  })
+  res.send(body)
+})
+
+app.get(`/${libations}`, async (req, res) => {
+  const { body } = await client.search({
+    index: libations,
+    body: {
+      query: {
+        match_all: {}
+      }
+    }
+  })
+  res.send(body)
+})
+
+app.get(`/${libations}/:id`, async (req, res) => {
+  const { id } = req.params
+  const { body } = await client.get({
+    index: libations,
+    id
+  })
+  res.send(body)
+})
+
+app.put(`/${libations}`, async (req, res) => {
   const { body } = await client.indices.create({
-    index: 'libations',
+    index: libations,
     body: {
       mappings: {
         properties: {
-          ingredients: {
+          ingredientsList: {
             type: 'nested'
           }
         }
@@ -36,9 +67,18 @@ app.put('/libations', async (req, res) => {
   res.send(body)
 })
 
-app.post('/libations', async (req, res) => {
+app.delete(`/${libations}/:id`, async (req, res) => {
+  const { id } = req.params
+  const { body } = await client.delete({
+    index: libations,
+    id
+  })
+  res.send(body)
+})
+
+app.post(`/${libations}`, async (req, res) => {
   const { body } = await client.index({
-    index: 'libations',
+    index: libations,
     body: req.body
   })
   res.send(body)
@@ -48,7 +88,7 @@ app.post('/libations', async (req, res) => {
  * 
  * @param {Object[]} ingredients 
  */
-function getIngredientsByName(ingredients) {
+function searchIngredientsList(ingredients) {
   return {
     query: {
       nested: {
@@ -65,14 +105,26 @@ function getIngredientsByName(ingredients) {
   }
 }
 
-app.get('/search', async (req, res) => {
+function searchIngredientsText(ingredients) {
+  return {
+    query: {
+      bool: {
+        must: ingredients.map(name => ({
+          match_phrase: {
+            ingredients: name
+          }
+        }))
+      }
+    }
+  }
+}
+
+app.get('/search/ingredients', async (req, res) => {
   const { ingredients } = req.query
-  console.log(getIngredientsByName(ingredients.split(',')).query.nested.query.bool.should)
   const { body } = await client.search({
-    index: 'libations',
-    body: getIngredientsByName(ingredients.split(','))
+    index: libations,
+    body: searchIngredientsText(ingredients.split(','))
   })
-  console.log(body.hits.hits)
   res.send(body)
 })
 
