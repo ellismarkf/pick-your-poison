@@ -1,6 +1,5 @@
 const express = require('express')
 const { Client } = require('@elastic/elasticsearch')
-const axios = require('axios')
 const app = express()
 const PORT = 3000
 const client = new Client({ node: 'http://localhost:9200' })
@@ -105,8 +104,8 @@ function searchIngredientsList(ingredients) {
   }
 }
 
-function searchIngredientsText(ingredients) {
-  return {
+function searchIngredientsText(ingredients, options) {
+  const q = {
     query: {
       bool: {
         must: ingredients.map(name => ({
@@ -115,15 +114,27 @@ function searchIngredientsText(ingredients) {
           }
         }))
       }
+    },
+  }
+  if (options.highlight) {
+    q.highlight =  {
+      pre_tags: ["**"],
+      post_tags: ["**"],
+      fields: {
+        ingredients: {
+          type: 'plain'
+        }
+      }
     }
   }
+  return q
 }
 
-app.get('/search/ingredients', async (req, res) => {
-  const { ingredients } = req.query
+app.get('/search', async (req, res) => {
+  const { ingredients, highlight } = req.query
   const { body } = await client.search({
     index: libations,
-    body: searchIngredientsText(ingredients.split(','))
+    body: searchIngredientsText(ingredients.split(','), { highlight })
   })
   res.send(body)
 })

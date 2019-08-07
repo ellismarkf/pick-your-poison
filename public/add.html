@@ -338,7 +338,7 @@
         } = ingredient
         return Object.values(readableText).join(' ')
       }).join('\n');
-      // console.log(JSON.stringify(processedFormData))
+      
       fetch('/libations', 
         {
           method: 'POST',

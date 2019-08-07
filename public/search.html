@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Pick your poison</title>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+
+    input {
+      display: inline-block;
+      width: 75%;
+      max-width: 300px;
+      border: 0px;
+      border-bottom: 1px solid #e0e0d3;
+    }
+
+    input:focus,
+    input:hover {
+      border-bottom: 1px solid cornflowerblue;
+      outline: none;
+    }
+
+    label,
+    #controls {
+      display: block;
+      margin-top: 20px;
+    }
+
+    controls button {
+      margin-right: 15px;
+    }
+
+    ul {
+      list-style: none;
+    }
+  </style>
+</head>
+
+<body>
+  <form id="search">
+    <label for="query">Search</label>
+    <input type="text" name="query" id="query" placeholder="Search a comma-separated list of ingredients">
+    <div id="controls">
+      <button id="submit">Search</button>
+      <button id="all">All</button>
+    </div>
+  </form>
+  <section id="results">
+  </section>
+  <template id="search-result">
+    <div class="search-result">
+      <h3>Drink name</h3>
+      <ul class="ingredients"></ul>
+    </div>
+  </template>
+  <script>
+    const template = document.getElementById('search-result')
+    const resultContainer = document.querySelector('#results')
+    const submitButton = document.querySelector('#submit')
+    const fetchAllButton = document.querySelector('#all')
+
+    async function search(query, options) {
+      const highlightQuery = options.highlight ? '&highlight=true' : ''
+      return fetch(`/search?ingredients=${query}${highlightQuery}`)
+        .then(res => res.json())
+        .then(r => r.hits.hits)
+    }
+
+    function buildHighlightedIngredientsDomList(hit) {
+      const data = hit.highlight ? hit.highlight.ingredients[0] : hit._source.ingredients
+      return data.split(/\n|\r/g).map(ingredient => {
+        const listItem = document.createElement('li')
+        const match = ingredient.match(/\*\*\w+\*\*/)
+        if (match) {
+          const { index, input } = match
+          const [text] = match
+          const preMatchText = input.substr(0, index)
+          const postMatchText = input.substr(index + (text.length), input.length - 1)
+          const matchText = text.replace(/\*/g, '')
+          const em = document.createElement('em')
+          em.innerText = matchText
+          listItem.append(preMatchText, em, postMatchText)
+        } else {
+          listItem.innerText = ingredient
+        }
+        return listItem
+      })
+    }
+
+    function buildIngredientsDomList(hit) {  
+      const data = hit._source.ingredients
+      return data.split(/\n|\r/g).map(ingredient => {
+        const listItem = document.createElement('li')
+        listItem.innerText = ingredient
+        return listItem
+      })
+    }
+
+    function insertResultsIntoDom(hits) {
+      hits.forEach(hit => {
+        const clone = document.importNode(template.content, true)
+        const title = clone.querySelector('h3')
+        const ingredients = clone.querySelector('ul')
+        const titleText = document.createTextNode(hit._source.name)
+        const ingredientsList = buildIngredientsDomList(hit)
+        title.innerText = titleText.textContent
+        ingredients.append(...ingredientsList)
+        resultContainer.append(clone)
+      })
+    }
+
+    function emptyResultContainer() {
+      resultContainer.querySelectorAll('.search-result').forEach(result => resultContainer.removeChild(result))
+    }
+
+    submitButton.addEventListener('click', async event => {
+      event.preventDefault()
+      emptyResultContainer()
+      const formData = new FormData(document.querySelector('#search'))
+      const query = formData.get('query')
+      const hits = await search(query, { highlight: false })
+      console.log(hits)
+      insertResultsIntoDom(hits)
+    })
+    fetchAllButton.addEventListener('click', async event => {
+      event.preventDefault()
+      emptyResultContainer()
+      const { hits: { hits } } = await fetch('/libations').then(res => res.json())
+      insertResultsIntoDom(hits)
+    })
+  </script>
+</body>
+
+</html>
