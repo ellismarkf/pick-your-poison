@@ -15,6 +15,13 @@ app.get('/indices', async (req, res) => {
   res.send(body)
 })
 
+app.post('/bulk', async (req, res) => {
+  const { body } = await client.bulk({
+    body: require('./poisons/poisons.json')
+  })
+  res.send(body)
+})
+
 app.get('/indices/:name', async (req, res) => {
   const { name } = req.params
   const { body } = await client.indices.get(name)
@@ -64,7 +71,9 @@ app.put(`/${libations}`, async (req, res) => {
         properties: {
           ingredientsList: {
             type: 'nested'
-          }
+          },
+          family: { type: "text", fields: { keyword: { type: "keyword" } } },
+          ingredientCount: { type: 'integer' }
         }
       }
     }
@@ -112,18 +121,30 @@ function searchIngredientsList(ingredients) {
 
 function searchIngredientsText(ingredients, options) {
   const q = {
+    min_score: ingredients.length - 0.2,
+    sort: [
+      'ingredientCount',
+      "_score"
+    ],
     query: {
       bool: {
-        must: ingredients.map(name => ({
+        should: ingredients.map(name => ({
           match_phrase: {
             ingredients: name
           }
         }))
       }
     },
+    aggregations: {
+      families: {
+        terms: {
+          field: 'family.keyword'
+        }
+      }
+    }
   }
   if (options.highlight) {
-    q.highlight =  {
+    q.highlight = {
       pre_tags: ["**"],
       post_tags: ["**"],
       fields: {

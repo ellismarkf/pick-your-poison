@@ -123,6 +123,7 @@
       emptyResultContainer()
       const formData = new FormData(document.querySelector('#search'))
       const query = formData.get('query')
+      // const trimmedQuery = query.split(',').map(i => i.trim()).join(',')
       const hits = await search(query, { highlight: false })
       console.log(hits)
       insertResultsIntoDom(hits)
@@ -133,6 +134,14 @@
       const { hits: { hits } } = await fetch('/libations').then(res => res.json())
       insertResultsIntoDom(hits)
     })
+
+    function reindexBackup(hits) {
+      return hits.reduce((acc, hit) => [
+        ...acc,
+        {"index":{"_index": hit._index,"_id":hit._id,"_type":hit._type}},
+        {...hit._source, ingredientCount: hit._source.ingredientsList.length}
+      ], [])
+    }
   </script>
 </body>
 
