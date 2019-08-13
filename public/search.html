@@ -7,8 +7,15 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Pick your poison</title>
   <style>
-    body {
-      font-family: sans-serif;
+    @import url("https://use.typekit.net/rio6vjy.css");
+
+    body,
+    input::placeholder,
+    button,
+    input {
+      font-family: benton-modern-display, serif;
+      font-weight: 400;
+      font-style: normal;
     }
 
     input {
@@ -17,6 +24,17 @@
       max-width: 300px;
       border: 0px;
       border-bottom: 1px solid #e0e0d3;
+    }
+
+    button {
+      background-color: white;
+      border: 1px solid lightgray;
+      transition: all 0.5s ease;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: black;
     }
 
     input:focus,
@@ -33,6 +51,12 @@
 
     controls button {
       margin-right: 15px;
+    }
+
+    h3 {
+      font-family: quiche-sans, sans-serif;
+      font-weight: 700;
+      font-style: normal;
     }
 
     ul {
@@ -58,8 +82,15 @@
       <ul class="ingredients"></ul>
     </div>
   </template>
+  <template id="no-results">
+    <div class="empty-state-container">
+      <h2>Never heard of that one.</h2>
+      <p>Try a different, simpler search.</p>
+    </div>
+  </template>
   <script>
-    const template = document.getElementById('search-result')
+    const resultTemplate = document.getElementById('search-result')
+    const emptyTemplate = document.getElementById('no-results')
     const resultContainer = document.querySelector('#results')
     const submitButton = document.querySelector('#submit')
     const fetchAllButton = document.querySelector('#all')
@@ -92,7 +123,34 @@
       })
     }
 
-    function buildIngredientsDomList(hit) {  
+    const fractions = new Map([
+      [0, ''],
+      [0.25, '¼'],
+      [0.5, '½'],
+      [0.75, '¾']
+    ])
+
+    function pluralizeUnit(unit) {
+      switch (unit) {
+        case 'Ounce':
+        case 'Teaspoon':
+        case 'Drop':
+          return `${unit}s`
+        case 'Dash':
+          return 'Dashes'
+        default:
+          return unit
+      }
+    }
+
+    function convertFloatToFraction(float) {
+      const fraction = float % 1
+      const wholeNumber = float - fraction
+      return `${wholeNumber === 0 ? '' : `${wholeNumber} `}${fractions.get(fraction)}`
+    }
+
+
+    function buildPlainTextIngredientDomList(hit) {
       const data = hit._source.ingredients
       return data.split(/\n|\r/g).map(ingredient => {
         const listItem = document.createElement('li')
@@ -101,9 +159,21 @@
       })
     }
 
+    function buildIngredientsDomList(hit) {
+      const data = hit._source.ingredientsList
+      return data.map(({ quantity, unit, name, type }) => {
+        const listItem = document.createElement('li')
+        const formattedQuantity = quantity % 1 > 0 ? convertFloatToFraction(quantity) : quantity
+        const formattedUnit = quantity > 1 ? pluralizeUnit(unit) : unit
+        const text = `${formattedQuantity} ${formattedUnit} ${name}`
+        listItem.innerText = text
+        return listItem
+      })
+    }
+
     function insertResultsIntoDom(hits) {
       hits.forEach(hit => {
-        const clone = document.importNode(template.content, true)
+        const clone = document.importNode(resultTemplate.content, true)
         const title = clone.querySelector('h3')
         const ingredients = clone.querySelector('ul')
         const titleText = document.createTextNode(hit._source.name)
@@ -115,7 +185,7 @@
     }
 
     function emptyResultContainer() {
-      resultContainer.querySelectorAll('.search-result').forEach(result => resultContainer.removeChild(result))
+      [...resultContainer.children].forEach(child => resultContainer.removeChild(child))
     }
 
     submitButton.addEventListener('click', async event => {
@@ -126,7 +196,12 @@
       // const trimmedQuery = query.split(',').map(i => i.trim()).join(',')
       const hits = await search(query, { highlight: false })
       console.log(hits)
-      insertResultsIntoDom(hits)
+      if (hits.length < 1) {
+        const clone = document.importNode(emptyTemplate.content, true)
+        resultContainer.append(clone)
+      } else {
+        insertResultsIntoDom(hits)
+      }
     })
     fetchAllButton.addEventListener('click', async event => {
       event.preventDefault()
@@ -138,8 +213,8 @@
     function reindexBackup(hits) {
       return hits.reduce((acc, hit) => [
         ...acc,
-        {"index":{"_index": hit._index,"_id":hit._id,"_type":hit._type}},
-        {...hit._source, ingredientCount: hit._source.ingredientsList.length}
+        { "index": { "_index": hit._index, "_id": hit._id, "_type": hit._type } },
+        { ...hit._source, ingredientCount: hit._source.ingredientsList.length }
       ], [])
     }
   </script>
